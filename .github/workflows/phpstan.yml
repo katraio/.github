@@ -1,0 +1,36 @@
+name: PHPStan - Static Analysis
+
+on:
+  workflow_call:
+
+jobs:
+  phpstan:
+    name: PHPStan (PHP v${{ matrix.php-versions }}) Static Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php-versions: ["8.2", "8.3", "8.4"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP (v${{ matrix.php-versions }})
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: swoole
+          tools: composer:v2
+          coverage: none
+
+      - name: Install Composer Dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: composer update --prefer-stable --prefer-dist --no-interaction --no-progress
+
+      - name: PHPStan Static Analysis
+        run: vendor/bin/phpstan
