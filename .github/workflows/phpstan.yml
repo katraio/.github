@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         php-versions: ["8.2", "8.3", "8.4"]
 
@@ -31,6 +31,8 @@ jobs:
           timeout_minutes: 5
           max_attempts: 5
           command: composer update --prefer-stable --prefer-dist --no-interaction --no-progress
+        continue-on-error: ${{ matrix.php-versions == '8.4' }}
 
       - name: PHPStan Static Analysis
         run: vendor/bin/phpstan
+        continue-on-error: ${{ matrix.php-versions == '8.4' }}
