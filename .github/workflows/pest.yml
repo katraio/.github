@@ -5,13 +5,14 @@ on:
 
 jobs:
   pest:
-    name: Pest (PHP v${{ matrix.php-versions }}) Unit Testing
+    name: Pest (PHP v${{ matrix.php-versions }}) Unit Testing - Laravel v${{ matrix.laravel-versions }}
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         php-versions: ["8.2", "8.3", "8.4"]
+        laravel-versions: ["11", "12"]
 
     steps:
       - name: Checkout
@@ -21,7 +22,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: swoole
+          extensions: swoole, dom, curl, libxml, mbstring, zip
           tools: composer:v2
           coverage: none
 
@@ -30,9 +31,11 @@ jobs:
         with:
           timeout_minutes: 5
           max_attempts: 5
-          command: composer update --prefer-stable --prefer-dist --no-interaction --no-progress
-        continue-on-error: ${{ matrix.php-versions == '8.4' }}
+          command: |
+            composer require "illuminate/support=^${{ matrix.laravel-versions }}" --no-update
+            composer update --prefer-dist --no-interaction --no-progress
+        continue-on-error: ${{ matrix.php-versions == '8.4' || matrix.laravel-versions == '12' }}
 
       - name: Pest PHP Unit Test
         run: vendor/bin/pest
-        continue-on-error: ${{ matrix.php-versions == '8.4' }}
+        continue-on-error: ${{ matrix.php-versions == '8.4' || matrix.laravel-versions == '12' }}
